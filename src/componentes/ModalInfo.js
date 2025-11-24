@@ -1,9 +1,10 @@
-
 class ModalInfo extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
+
         this._planeta = null;
+        this._cerrarHandler = this.cerrar.bind(this);
     }
 
     set planeta(valor) {
@@ -17,6 +18,11 @@ class ModalInfo extends HTMLElement {
 
     connectedCallback() {
         this.renderizar();
+    }
+
+    disconnectedCallback() {
+        const btn = this.shadowRoot.querySelector("#cerrar");
+        if (btn) btn.removeEventListener("click", this._cerrarHandler);
     }
 
     cerrar() {
@@ -35,7 +41,9 @@ class ModalInfo extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
-                    position: absolute;
+                    --color-planeta: ${color};
+
+                    position: fixed;
                     right: 20px;
                     top: 80px;
                     width: 300px;
@@ -57,7 +65,7 @@ class ModalInfo extends HTMLElement {
                     width: 60px;
                     height: 60px;
                     border-radius: 50%;
-                    background: ${color};
+                    background: var(--color-planeta);
                     margin-bottom: 12px;
                 }
 
@@ -96,7 +104,9 @@ class ModalInfo extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector('#cerrar').addEventListener('click', () => this.cerrar());
+        this.shadowRoot
+            .querySelector("#cerrar")
+            .addEventListener("click", this._cerrarHandler);
     }
 }
 

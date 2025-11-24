@@ -7,10 +7,13 @@ class TarjetaPlaneta extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["nombre", "color", "descripcion"];    }
+        return ["nombre", "color", "descripcion"];
+    }
 
-    attributeChangedCallback() {
-        this.renderizar();
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.renderizar();
+        }
     }
 
     set planeta(data) {
@@ -36,6 +39,8 @@ class TarjetaPlaneta extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
+                    --color-planeta: ${planeta.color};
+
                     display: block;
                     background: rgba(255, 255, 255, 0.06);
                     padding: 18px;
@@ -55,7 +60,7 @@ class TarjetaPlaneta extends HTMLElement {
                     height: 50px;
                     border-radius: 50%;
                     margin-bottom: 10px;
-                    background: ${planeta.color};
+                    background: var(--color-planeta);
                 }
 
                 h3 {

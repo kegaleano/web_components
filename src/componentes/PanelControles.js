@@ -1,69 +1,94 @@
 class PanelControles extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({ mode: "open" });
-    }
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
 
-    connectedCallback() {
-        this.renderizar();
-        this.configurarEventos();
-    }
+    // estado local opcional
+    this._filtros = { q: "" };
+  }
 
-    configurarEventos() {
-        const btnModo = this.shadowRoot.querySelector('#btnModo');
+  static get observedAttributes() {
+    return ["modoOscuro"];
+  }
 
-        btnModo.addEventListener('click', () => {
-            this.dispatchEvent(new CustomEvent("toggle-modo-oscuro", {
-                bubbles: true,
-                composed: true
-            }));
-        });
-    }
+  attributeChangedCallback() {
+    // Cuando cambia el modo desde afuera, se vuelve a dibujar
+    this.renderizar();
+    this.configurarEventos();
+  }
 
-    renderizar() {
-        const modoOscuro = this.getAttribute("modoOscuro") === "true";
+  connectedCallback() {
+    this.renderizar();
+    this.configurarEventos();
+  }
 
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 12px 20px;
-                    background: rgba(0, 0, 0, 0.4);
-                    backdrop-filter: blur(4px);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-                }
+  configurarEventos() {
+    const btnModo = this.shadowRoot.querySelector('#btnModo');
+    const inputQ = this.shadowRoot.querySelector('#q');
 
-                h1 {
-                    margin: 0;
-                    font-size: 1.4rem;
-                    letter-spacing: 3px;
-                }
+    if (!btnModo || !inputQ) return; // seguridad
 
-                button {
-                    background: transparent;
-                    color: white;
-                    padding: 8px 14px;
-                    border: 1px solid rgba(255, 255, 255, 0.4);
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: 0.3s;
-                    font-size: 0.95rem;
-                }
+    btnModo.addEventListener('click', () => {
+      this.dispatchEvent(
+        new CustomEvent("toggle-modo-oscuro", { bubbles: true, composed: true })
+      );
+    });
 
-                button:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                }
-            </style>
+    inputQ.addEventListener('input', () => {
+      this._filtros.q = inputQ.value;
 
-            <h1>Explorador Espacial</h1>
+      this.dispatchEvent(
+        new CustomEvent("filtros-cambiados", {
+          detail: { ...this._filtros },
+          bubbles: true,
+          composed: true
+        })
+      );
+    });
+  }
 
-            <button id="btnModo">
-                ${modoOscuro ? "Modo Claro" : "Modo Oscuro"}
-            </button>
-        `;
-    }
+  // Opción: permitir setear filtros desde afuera
+  set filtros(val) {
+    this._filtros = { ...this._filtros, ...val };
+    this.renderizar();
+    this.configurarEventos();
+  }
+
+  renderizar() {
+    const modoOscuro = this.getAttribute("modoOscuro") === "true";
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          padding: 12px;
+        }
+
+        input {
+          flex: 1;
+          padding: 8px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: transparent;
+          color: inherit;
+        }
+
+        button {
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.2);
+          cursor: pointer;
+          background: transparent;
+          color: inherit;
+        }
+      </style>
+
+      <input id="q" type="search" placeholder="Buscar planeta..." value="${this._filtros.q || ""}"/>
+      <button id="btnModo">${modoOscuro ? "Modo Claro" : "Modo Oscuro"}</button>
+    `;
+  }
 }
 
 customElements.define("panel-controles", PanelControles);
